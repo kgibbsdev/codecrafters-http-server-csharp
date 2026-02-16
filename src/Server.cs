@@ -13,9 +13,10 @@ var okResponse = Encoding.ASCII.GetBytes("HTTP/1.1 200 OK\r\n\r\n");
 var notFoundResponse = Encoding.ASCII.GetBytes("HTTP/1.1 404 Not Found\r\n\r\n");
 // connection.Send(okResponse);
 connection.Listen();
-Byte[] outBytes = new Byte[1024];
+Console.WriteLine("connection received");
+byte[] outBytes = new byte[1024];
 
-while (connection.Connected)
+while (true)
 {
     int numberOfBytes = connection.Receive(outBytes);
     string query = Encoding.ASCII.GetString(outBytes, 0, numberOfBytes);
