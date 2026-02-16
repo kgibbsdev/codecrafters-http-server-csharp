@@ -23,16 +23,23 @@ while (true)
     }
     else
     {
-        connection.Send(okResponse);
-        // int startingIndex = query.IndexOf("/");
-        // int endingIndex = query.IndexOf(".");
-        // string requestTarget =  query.Substring(startingIndex, endingIndex - startingIndex);
-        // Console.WriteLine(requestTarget);
+        int startingIndex = query.IndexOf("/");
+        int endingIndex = query.IndexOf(".");
+        string requestTarget =  query.Substring(startingIndex, endingIndex - startingIndex);
+        if (requestTarget != "/")
+        {
+            connection.Send(notFoundResponse);
+        }
+        else
+        {
+            connection.Send(okResponse);
+        }
     }
+
+    connection.Close();
 }
 //GET /index.html HTTP/1.1\r\nHost: localhost:4221\r\nUser-Agent: curl/7.64.1\r\nAccept: */*\r\n\r\n
 
 
 
 
-connection.Close();
