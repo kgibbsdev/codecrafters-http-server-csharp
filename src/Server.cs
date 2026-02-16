@@ -2,9 +2,14 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 
+byte[] StringToByteArray(string input)
+{
+    return Encoding.ASCII.GetBytes(input);
+}
+
+
 // You can use print statements as follows for debugging, they'll be visible when running tests.
 Console.WriteLine("Logs from your program will appear here!");
-
 // TODO: Uncomment the code below to pass the first stage
 TcpListener server = new TcpListener(IPAddress.Any, 4221);
 server.Start();
@@ -20,6 +25,7 @@ while (true)
     string[] words = query.Split(" ");
     string httpMethod = words[0];
     string httpTarget = words[1];
+    
     if (httpMethod != "GET")
     {
         connection.Send(notFoundResponse);
@@ -30,11 +36,7 @@ while (true)
         {
             connection.Send(okResponse);
         }
-        else if (!httpTarget.StartsWith("/echo"))
-        {
-            connection.Send(notFoundResponse);
-        }
-        else
+        else if (httpTarget.StartsWith("/echo"))
         {
             //Skip to the part of the string after '/echo/'
             int startingIndex = httpTarget.LastIndexOf("/") + 1;
@@ -42,8 +44,20 @@ while (true)
             int messageLength = message.Length;
             string stringResponse =
                 $"HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: {messageLength}\r\n\r\n{message}";
-            byte[] byteResponse = Encoding.ASCII.GetBytes(stringResponse);
+            byte[] byteResponse = StringToByteArray(stringResponse);
             connection.Send(byteResponse);
+        }
+        else if (httpTarget.StartsWith("/user-agent"))
+        {
+            string userAgentName = words[4];
+            string stringResponse =
+                $"HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: 12\r\n\r\n{userAgentName}";
+            byte[] byteResponse = StringToByteArray(stringResponse);
+            connection.Send(byteResponse);
+        }
+        else
+        {
+            connection.Send(notFoundResponse);
         }
 
         connection.Close();
