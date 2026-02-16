@@ -7,20 +7,11 @@ byte[] StringToByteArray(string input)
     return Encoding.ASCII.GetBytes(input);
 }
 
-
-// You can use print statements as follows for debugging, they'll be visible when running tests.
-Console.WriteLine("Logs from your program will appear here!");
-// TODO: Uncomment the code below to pass the first stage
-TcpListener server = new TcpListener(IPAddress.Any, 4221);
-server.Start();
-var connection = server.AcceptSocket(); // wait for client
-var okResponse = Encoding.ASCII.GetBytes("HTTP/1.1 200 OK\r\n\r\n");
-var notFoundResponse = Encoding.ASCII.GetBytes("HTTP/1.1 404 Not Found\r\n\r\n");
-byte[] outBytes = new byte[1024];
-
-// string methodSubstring = 
-while (true)
+void HandleRequest(Socket connection)
 {
+    var okResponse = Encoding.ASCII.GetBytes("HTTP/1.1 200 OK\r\n\r\n");
+    var notFoundResponse = Encoding.ASCII.GetBytes("HTTP/1.1 404 Not Found\r\n\r\n");
+    byte[] outBytes = new byte[1024];
     int numberOfBytes = connection.Receive(outBytes);
     string query = Encoding.ASCII.GetString(outBytes, 0, numberOfBytes);
     string[] requestLines = query.Split("\r\n");
@@ -62,6 +53,19 @@ while (true)
             connection.Send(notFoundResponse);
         }
     }
+    connection.Close();
+}
+
+Console.WriteLine("Logs from your program will appear here!");
+
+TcpListener server = new TcpListener(IPAddress.Any, 4221);
+server.Start();
+
+while (true)
+{
+    var connection = server.AcceptSocket(); // wait for client
+    Thread thread = new Thread(() => HandleRequest(connection));
+    thread.Start();
 }
 
 
