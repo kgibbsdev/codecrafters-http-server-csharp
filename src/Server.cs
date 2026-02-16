@@ -37,7 +37,7 @@ while (true)
             string message = httpTarget.Substring(startingIndex);
             int messageLength = message.Length;
             string stringResponse =
-                $"HTTP/1.1 200 OK\\r\\nContent-Type: text/plain\\r\\nContent-Length: {messageLength}\\r\\n\\r\\n{message}";
+                $"HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: {messageLength}\r\n\r\n{message}";
             byte[] byteResponse = Encoding.ASCII.GetBytes(stringResponse);
             connection.Send(byteResponse);
         }
