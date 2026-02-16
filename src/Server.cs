@@ -50,6 +50,7 @@ while (true)
         {
             string userAgentName = words[4];
             Console.WriteLine("USER AGENT: " + userAgentName);
+            Console.WriteLine("UA Length: " + userAgentName.Length);
             string stringResponse =
                 $"HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: {userAgentName.Length}\r\n\r\n{userAgentName}";
             byte[] byteResponse = StringToByteArray(stringResponse);
@@ -59,7 +60,7 @@ while (true)
         {
             connection.Send(notFoundResponse);
         }
-
+        
         connection.Close();
     }
 }
