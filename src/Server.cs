@@ -12,27 +12,33 @@ var connection = server.AcceptSocket(); // wait for client
 var okResponse = Encoding.ASCII.GetBytes("HTTP/1.1 200 OK\r\n\r\n");
 var notFoundResponse = Encoding.ASCII.GetBytes("HTTP/1.1 404 Not Found\r\n\r\n");
 byte[] outBytes = new byte[1024];
-int numberOfBytes = connection.Receive(outBytes);
 
+int numberOfBytes = connection.Receive(outBytes);
 while (true)
 {
     string query = Encoding.ASCII.GetString(outBytes, 0, numberOfBytes);
     string[] words = query.Split(" ");
     string httpMethod = words[0];
-    string target = words[1];
+    string httpTarget = words[1];
     if (httpMethod != "GET")
     {
         connection.Send(notFoundResponse);
     }
     else
     {
-        if (target != "/")
+        if (!httpTarget.StartsWith("/echo") )
         {
             connection.Send(notFoundResponse);
         }
         else
         {
-            connection.Send(okResponse);
+            int startingIndex = httpTarget.IndexOf("/echo/");
+            string message = httpTarget.Substring(startingIndex);
+            int messageLength = message.Length;
+            string stringResponse =
+                $"HTTP/1.1 200 OK\\r\\nContent-Type: text/plain\\r\\nContent-Length: {messageLength}\\r\\n\\r\\n{message}";
+            byte[] byteResponse = Encoding.ASCII.GetBytes(stringResponse);
+            connection.Send(byteResponse);
         }
     }
 }
