@@ -18,18 +18,18 @@ var okResponse = Encoding.ASCII.GetBytes("HTTP/1.1 200 OK\r\n\r\n");
 var notFoundResponse = Encoding.ASCII.GetBytes("HTTP/1.1 404 Not Found\r\n\r\n");
 byte[] outBytes = new byte[1024];
 
-int numberOfBytes = connection.Receive(outBytes);
-string query = Encoding.ASCII.GetString(outBytes, 0, numberOfBytes);
-string[] requestLines = query.Split("\r\n");
-string httpMethod = requestLines[0].Split(" ")[0];
-string httpTarget = requestLines[0].Split(" ")[1];
-var userAgentLine = requestLines.Where(l => l.StartsWith("User-Agent")).ToList()[0];
-var elements = userAgentLine.Split(' ');
-var userAgentName = elements[1];
-
 // string methodSubstring = 
 while (true)
 {
+    int numberOfBytes = connection.Receive(outBytes);
+    string query = Encoding.ASCII.GetString(outBytes, 0, numberOfBytes);
+    string[] requestLines = query.Split("\r\n");
+    string httpMethod = requestLines[0].Split(" ")[0];
+    string httpTarget = requestLines[0].Split(" ")[1];
+    var userAgentLine = requestLines.Where(l => l.StartsWith("User-Agent")).ToList()[0];
+    var elements = userAgentLine.Split(' ');
+    var userAgentName = elements[1];
+    
     if (httpMethod != "GET")
     {
         connection.Send(notFoundResponse);
