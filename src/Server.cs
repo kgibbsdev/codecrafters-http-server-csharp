@@ -41,9 +41,8 @@ while (true)
             //Skip to the part of the string after '/echo/'
             int startingIndex = httpTarget.LastIndexOf("/") + 1;
             string message = httpTarget.Substring(startingIndex);
-            int messageLength = message.Length;
             string stringResponse =
-                $"HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: {messageLength}\r\n\r\n{message}";
+                $"HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: {message.Length}\r\n\r\n{message}";
             byte[] byteResponse = StringToByteArray(stringResponse);
             connection.Send(byteResponse);
         }
@@ -51,7 +50,7 @@ while (true)
         {
             string userAgentName = words[4];
             string stringResponse =
-                $"HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: 12\r\n\r\n{userAgentName}";
+                $"HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: {userAgentName.Length}\r\n\r\n{userAgentName}";
             byte[] byteResponse = StringToByteArray(stringResponse);
             connection.Send(byteResponse);
         }
