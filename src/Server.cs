@@ -26,15 +26,15 @@ while (true)
     }
     else
     {
-        if (!httpTarget.StartsWith("/echo") )
+        if (!httpTarget.StartsWith("/echo"))
         {
             connection.Send(notFoundResponse);
         }
         else
         {
-            //Skip the following slash
+            //Skip to the part of the string after '/echo/'
             int startingIndex = httpTarget.LastIndexOf("/") + 1;
-            string message = httpTarget.Substring(startingIndex+1);
+            string message = httpTarget.Substring(startingIndex);
             int messageLength = message.Length;
             string stringResponse =
                 $"HTTP/1.1 200 OK\\r\\nContent-Type: text/plain\\r\\nContent-Length: {messageLength}\\r\\n\\r\\n{message}";
