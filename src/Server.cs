@@ -26,7 +26,11 @@ while (true)
     }
     else
     {
-        if (!httpTarget.StartsWith("/echo"))
+        if (httpTarget == "/")
+        {
+            connection.Send(okResponse);
+        }
+        else if (!httpTarget.StartsWith("/echo"))
         {
             connection.Send(notFoundResponse);
         }
@@ -41,6 +45,8 @@ while (true)
             byte[] byteResponse = Encoding.ASCII.GetBytes(stringResponse);
             connection.Send(byteResponse);
         }
+
+        connection.Close();
     }
 }
 
