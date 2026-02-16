@@ -48,6 +48,11 @@ void HandleRequest(Socket connection)
             byte[] byteResponse = StringToByteArray(stringResponse);
             connection.Send(byteResponse);
         }
+        else if (httpTarget.StartsWith("/files"))
+        {
+            string fileName = httpTarget.Substring(6);
+            Console.WriteLine("File Name: " +fileName);
+        }
         else
         {
             connection.Send(notFoundResponse);
