@@ -32,8 +32,9 @@ while (true)
         }
         else
         {
-            int startingIndex = httpTarget.IndexOf("/echo/");
-            string message = httpTarget.Substring(startingIndex);
+            //Skip the following slash
+            int startingIndex = httpTarget.LastIndexOf("/") + 1;
+            string message = httpTarget.Substring(startingIndex+1);
             int messageLength = message.Length;
             string stringResponse =
                 $"HTTP/1.1 200 OK\\r\\nContent-Type: text/plain\\r\\nContent-Length: {messageLength}\\r\\n\\r\\n{message}";
