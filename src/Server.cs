@@ -9,6 +9,31 @@ Console.WriteLine("Logs from your program will appear here!");
 TcpListener server = new TcpListener(IPAddress.Any, 4221);
 server.Start();
 var connection = server.AcceptSocket(); // wait for client
-var response = Encoding.ASCII.GetBytes("HTTP/1.1 200 OK\r\n\r\n");
-connection.Send(response);
+var okResponse = Encoding.ASCII.GetBytes("HTTP/1.1 200 OK\r\n\r\n");
+var notFoundResponse = Encoding.ASCII.GetBytes("HTTP/1.1 404 Not Found\r\n\r\n");
+// connection.Send(okResponse);
+connection.Listen();
+Byte[] outBytes = new Byte[1024];
+
+while (connection.Connected)
+{
+    int numberOfBytes = connection.Receive(outBytes);
+    string query = Encoding.ASCII.GetString(outBytes, 0, numberOfBytes);
+    if (!query.StartsWith("GET"))
+    {
+        connection.Send(notFoundResponse);
+    }
+    else
+    {
+        int startingIndex = query.IndexOf("/");
+        int endingIndex = query.IndexOf(".");
+        string requestTarget =  query.Substring(startingIndex, endingIndex - startingIndex);
+        Console.WriteLine(requestTarget);
+    }
+}
+//GET /index.html HTTP/1.1\r\nHost: localhost:4221\r\nUser-Agent: curl/7.64.1\r\nAccept: */*\r\n\r\n
+
+
+
+
 connection.Close();
