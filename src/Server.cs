@@ -17,16 +17,16 @@ int numberOfBytes = connection.Receive(outBytes);
 while (true)
 {
     string query = Encoding.ASCII.GetString(outBytes, 0, numberOfBytes);
-    if (!query.StartsWith("GET"))
+    string[] words = query.Split(" ");
+    string httpMethods = words[0];
+    string target = words[1];
+    if (words[0] != "GET")
     {
         connection.Send(notFoundResponse);
     }
     else
     {
-        int startingIndex = query.IndexOf("/");
-        int endingIndex = query.IndexOf(".");
-        string requestTarget =  query.Substring(startingIndex, endingIndex - startingIndex);
-        if (requestTarget != "/")
+        if (target != "/")
         {
             connection.Send(notFoundResponse);
         }
