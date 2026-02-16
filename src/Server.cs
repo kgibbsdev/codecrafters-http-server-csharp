@@ -63,10 +63,7 @@ while (true)
         {
             connection.Send(notFoundResponse);
         }
-        
-        connection.Close();
     }
 }
-
 
 
