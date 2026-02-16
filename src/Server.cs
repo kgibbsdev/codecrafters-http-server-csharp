@@ -58,7 +58,7 @@ void HandleRequest(Socket connection)
             {
                 string fileContent = File.ReadAllText(filePath);
                 string stringResponse =
-                    $"HTTP/1.1 200 OK\r\nContent-Type: octet-stream\r\nContent-Length: {fileContent.Length}\r\n\r\n{fileContent}";
+                    $"HTTP/1.1 200 OK\r\nContent-Type: application/octet-stream\r\nContent-Length: {fileContent.Length}\r\n\r\n{fileContent}";
                 byte[] byteResponse = StringToByteArray(stringResponse);
                 connection.Send(byteResponse);
             }
