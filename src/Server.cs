@@ -18,9 +18,9 @@ while (true)
 {
     string query = Encoding.ASCII.GetString(outBytes, 0, numberOfBytes);
     string[] words = query.Split(" ");
-    string httpMethods = words[0];
+    string httpMethod = words[0];
     string target = words[1];
-    if (words[0] != "GET")
+    if (httpMethod != "GET")
     {
         connection.Send(notFoundResponse);
     }
@@ -35,11 +35,7 @@ while (true)
             connection.Send(okResponse);
         }
     }
-
-    connection.Close();
 }
-//GET /index.html HTTP/1.1\r\nHost: localhost:4221\r\nUser-Agent: curl/7.64.1\r\nAccept: */*\r\n\r\n
-
 
 
 
