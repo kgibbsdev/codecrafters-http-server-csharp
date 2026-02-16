@@ -49,6 +49,7 @@ while (true)
         else if (httpTarget.StartsWith("/user-agent"))
         {
             string userAgentName = words[4];
+            Console.WriteLine("USER AGENT: " + userAgentName);
             string stringResponse =
                 $"HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: {userAgentName.Length}\r\n\r\n{userAgentName}";
             byte[] byteResponse = StringToByteArray(stringResponse);
