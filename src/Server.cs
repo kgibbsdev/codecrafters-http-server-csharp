@@ -11,14 +11,11 @@ server.Start();
 var connection = server.AcceptSocket(); // wait for client
 var okResponse = Encoding.ASCII.GetBytes("HTTP/1.1 200 OK\r\n\r\n");
 var notFoundResponse = Encoding.ASCII.GetBytes("HTTP/1.1 404 Not Found\r\n\r\n");
-// connection.Send(okResponse);
-connection.Listen();
-Console.WriteLine("connection received");
 byte[] outBytes = new byte[1024];
+int numberOfBytes = connection.Receive(outBytes);
 
 while (true)
 {
-    int numberOfBytes = connection.Receive(outBytes);
     string query = Encoding.ASCII.GetString(outBytes, 0, numberOfBytes);
     if (!query.StartsWith("GET"))
     {
@@ -26,10 +23,11 @@ while (true)
     }
     else
     {
-        int startingIndex = query.IndexOf("/");
-        int endingIndex = query.IndexOf(".");
-        string requestTarget =  query.Substring(startingIndex, endingIndex - startingIndex);
-        Console.WriteLine(requestTarget);
+        connection.Send(okResponse);
+        // int startingIndex = query.IndexOf("/");
+        // int endingIndex = query.IndexOf(".");
+        // string requestTarget =  query.Substring(startingIndex, endingIndex - startingIndex);
+        // Console.WriteLine(requestTarget);
     }
 }
 //GET /index.html HTTP/1.1\r\nHost: localhost:4221\r\nUser-Agent: curl/7.64.1\r\nAccept: */*\r\n\r\n
