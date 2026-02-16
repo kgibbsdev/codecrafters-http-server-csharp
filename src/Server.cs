@@ -52,8 +52,6 @@ while (true)
             var userAgentLine = requestLines.Where(l => l.StartsWith("User-Agent")).ToList()[0];
             var elements = userAgentLine.Split(' ');
             var userAgentName = elements[1];
-            Console.WriteLine("USER AGENT: " + userAgentName);
-            Console.WriteLine("UA Length: " + userAgentName.Length);
             string stringResponse =
                 $"HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: {userAgentName.Length}\r\n\r\n{userAgentName}";
             byte[] byteResponse = StringToByteArray(stringResponse);
