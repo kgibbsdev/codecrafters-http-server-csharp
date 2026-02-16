@@ -26,9 +26,6 @@ while (true)
     string[] requestLines = query.Split("\r\n");
     string httpMethod = requestLines[0].Split(" ")[0];
     string httpTarget = requestLines[0].Split(" ")[1];
-    var userAgentLine = requestLines.Where(l => l.StartsWith("User-Agent")).ToList()[0];
-    var elements = userAgentLine.Split(' ');
-    var userAgentName = elements[1];
     
     if (httpMethod != "GET")
     {
@@ -52,6 +49,9 @@ while (true)
         }
         else if (httpTarget.StartsWith("/user-agent"))
         {
+            var userAgentLine = requestLines.Where(l => l.StartsWith("User-Agent")).ToList()[0];
+            var elements = userAgentLine.Split(' ');
+            var userAgentName = elements[1];
             Console.WriteLine("USER AGENT: " + userAgentName);
             Console.WriteLine("UA Length: " + userAgentName.Length);
             string stringResponse =
