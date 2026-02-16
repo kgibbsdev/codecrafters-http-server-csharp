@@ -50,8 +50,23 @@ void HandleRequest(Socket connection)
         }
         else if (httpTarget.StartsWith("/files"))
         {
-            string fileName = httpTarget.Substring(6);
-            Console.WriteLine("File Name: " +fileName);
+            // remove /files
+            string fileName = httpTarget.Substring(7);
+            string filePath = args[1] +  fileName;
+            Console.WriteLine("File Path: " + filePath);
+            if (File.Exists(filePath))
+            {
+                string fileContent = File.ReadAllText(filePath);
+                string stringResponse =
+                    $"HTTP/1.1 200 OK\r\nContent-Type: octet-stream\r\nContent-Length: {fileContent.Length}\r\n\r\n{fileContent}";
+                byte[] byteResponse = StringToByteArray(stringResponse);
+                connection.Send(byteResponse);
+            }
+            else
+            {
+                connection.Send(notFoundResponse);
+            }
+            
         }
         else
         {
