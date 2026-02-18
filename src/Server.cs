@@ -17,12 +17,13 @@ void HandleRequest(Socket connection)
 {
     byte[] outBytes = new byte[9999];
     
-    // int numberOfBytes = connection.Receive(outBytes);
-    int numberOfBytes = 1;
+    int numberOfBytes = connection.Receive(outBytes);
     
     string query = Encoding.ASCII.GetString(outBytes, 0, numberOfBytes);
     
     string[] requestLines = query.Split("\r\n");
+    
+    Console.WriteLine(requestLines.Length);
     
     string httpMethod = requestLines[0].Split(" ")[0];
     string httpTarget = requestLines[0].Split(" ")[1];
