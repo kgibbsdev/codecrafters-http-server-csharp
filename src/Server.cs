@@ -17,7 +17,8 @@ void HandleRequest(Socket connection)
 {
     byte[] outBytes = new byte[9999];
     
-    int numberOfBytes = connection.Receive(outBytes);
+    // int numberOfBytes = connection.Receive(outBytes);
+    int numberOfBytes = 1;
     
     string query = Encoding.ASCII.GetString(outBytes, 0, numberOfBytes);
     
