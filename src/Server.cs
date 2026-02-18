@@ -15,7 +15,7 @@ byte[] StringToByteArray(string input)
 
 void HandleRequest(Socket connection)
 {
-    byte[] outBytes = new byte[1024];
+    byte[] outBytes = new byte[1025];
     
     int numberOfBytes = connection.Receive(outBytes);
     
