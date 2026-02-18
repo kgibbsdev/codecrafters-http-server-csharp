@@ -8,6 +8,26 @@ var notFoundResponse = StringToByteArray("HTTP/1.1 404 Not Found\r\n\r\n");
 var badRequestResponse = StringToByteArray("HTTP/1.1 400 Bad Request\r\n\r\n");
 var createdResponse = StringToByteArray("HTTP/1.1 201 Created\r\n\r\n");
 
+string GetMessageBody(string[] requestLines)
+{
+    int messageBodyIndex = 0;
+    for (int i = 0; i < requestLines.Length; i++)
+    {
+        if (requestLines[i] == "" && requestLines.Length > i + 1);
+        {
+            messageBodyIndex = i + 1;
+        }
+    }
+
+    string messageBody = "";
+    if (messageBodyIndex > 0)
+    {
+        messageBody = requestLines[messageBodyIndex];
+    }
+
+    return messageBody;
+}
+
 byte[] StringToByteArray(string input)
 {
     return Encoding.ASCII.GetBytes(input);
@@ -23,14 +43,10 @@ void HandleRequest(Socket connection)
     
     string[] requestLines = query.Split("\r\n");
     
-    for (int i = 0; i < requestLines.Length; i++)
-    {
-        Console.WriteLine(requestLines[i]);
-    }
-    
     string httpMethod = requestLines[0].Split(" ")[0];
     string httpTarget = requestLines[0].Split(" ")[1];
-    string messageBody = requestLines[10];
+    string messageBody =  GetMessageBody(requestLines);
+    
     if (httpMethod == "GET")
     {
         if (httpTarget == "/")
