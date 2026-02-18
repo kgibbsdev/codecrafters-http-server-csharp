@@ -23,7 +23,10 @@ void HandleRequest(Socket connection)
     
     string[] requestLines = query.Split("\r\n");
     
-    Console.WriteLine(requestLines.Length);
+    for (int i = 0; i < requestLines.Length; i++)
+    {
+        Console.WriteLine(requestLines[i]);
+    }
     
     string httpMethod = requestLines[0].Split(" ")[0];
     string httpTarget = requestLines[0].Split(" ")[1];
