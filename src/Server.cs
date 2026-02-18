@@ -2,6 +2,12 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 
+
+var okResponse = StringToByteArray("HTTP/1.1 200 OK\r\n\r\n");
+var notFoundResponse = StringToByteArray("HTTP/1.1 404 Not Found\r\n\r\n");
+var badRequestResponse = StringToByteArray("HTTP/1.1 400 Bad Request\r\n\r\n");
+var createdResponse = StringToByteArray("HTTP/1.1 201 Created\r\n\r\n");
+
 byte[] StringToByteArray(string input)
 {
     return Encoding.ASCII.GetBytes(input);
@@ -9,20 +15,18 @@ byte[] StringToByteArray(string input)
 
 void HandleRequest(Socket connection)
 {
-    var okResponse = Encoding.ASCII.GetBytes("HTTP/1.1 200 OK\r\n\r\n");
-    var notFoundResponse = Encoding.ASCII.GetBytes("HTTP/1.1 404 Not Found\r\n\r\n");
     byte[] outBytes = new byte[1024];
+    
     int numberOfBytes = connection.Receive(outBytes);
+    
     string query = Encoding.ASCII.GetString(outBytes, 0, numberOfBytes);
+    
     string[] requestLines = query.Split("\r\n");
+    
     string httpMethod = requestLines[0].Split(" ")[0];
     string httpTarget = requestLines[0].Split(" ")[1];
-    
-    if (httpMethod != "GET")
-    {
-        connection.Send(notFoundResponse);
-    }
-    else
+    string messageBody = requestLines[10];
+    if (httpMethod == "GET")
     {
         if (httpTarget == "/")
         {
@@ -72,6 +76,35 @@ void HandleRequest(Socket connection)
         {
             connection.Send(notFoundResponse);
         }
+    }
+    else if (httpMethod == "POST")
+    {
+        if (httpTarget.StartsWith("/files"))
+        {
+            // remove /files
+            string fileName = httpTarget.Substring(7);
+            string directory = "/tmp/";
+            for (int i = 0; i < args.Length; i++)
+            {
+                if (args[i] == "--directory" && args.Length > (i + 1))
+                {
+                    directory = args[i + 1];
+                }
+            }
+            
+            Console.WriteLine("derp: " + directory);
+            Directory.CreateDirectory(directory);
+            File.WriteAllText(directory + fileName, messageBody);
+            connection.Send(createdResponse);
+        }
+        else
+        {
+            connection.Send(notFoundResponse);
+        }
+    }
+    else
+    {
+        connection.Send(notFoundResponse);
     }
     connection.Close();
 }
