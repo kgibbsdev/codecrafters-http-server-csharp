@@ -11,7 +11,7 @@ var createdResponse = StringToByteArray("HTTP/1.1 201 Created\r\n\r\n");
 string GetMessageBody(string[] requestLines)
 {
     int messageBodyIndex = 0;
-    for (int i = 0; i < requestLines.Length; i++)
+    for (int i = 0; i < requestLines.Length-1; i++)
     {
         if (requestLines[i] == "" && requestLines.Length > i + 1);
         {
