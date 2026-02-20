@@ -35,7 +35,7 @@ byte[] StringToByteArray(string input)
 
 void HandleRequest(Socket connection)
 {
-    byte[] outBytes = new byte[9999];
+    byte[] outBytes = new byte[1024];
     
     int numberOfBytes = connection.Receive(outBytes);
     
@@ -130,7 +130,6 @@ void HandleRequest(Socket connection)
     connection.Close();
 }
 
-Console.WriteLine("Logs from your program will appear here!");
 
 TcpListener server = new TcpListener(IPAddress.Any, 4221);
 server.Start();
