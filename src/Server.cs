@@ -45,6 +45,7 @@ void HandleRequest(Socket connection)
     
     string httpMethod = requestLines[0].Split(" ")[0];
     string httpTarget = requestLines[0].Split(" ")[1];
+    
     string messageBody =  GetMessageBody(requestLines);
     
     if (httpMethod == "GET")
