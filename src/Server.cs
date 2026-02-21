@@ -1,3 +1,4 @@
+using System.IO.Compression;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -7,6 +8,50 @@ var okResponse = StringToByteArray("HTTP/1.1 200 OK\r\n\r\n");
 var notFoundResponse = StringToByteArray("HTTP/1.1 404 Not Found\r\n\r\n");
 var badRequestResponse = StringToByteArray("HTTP/1.1 400 Bad Request\r\n\r\n");
 var createdResponse = StringToByteArray("HTTP/1.1 201 Created\r\n\r\n");
+
+byte[] CreateGzippedResponse(string bodyContent)
+{
+    byte[] bodyContentAsBytes = [];
+    using (MemoryStream memoryStream = new MemoryStream())
+    {
+        using (GZipStream gzipStream = new GZipStream(memoryStream, CompressionMode.Compress))
+        {
+            using (StreamWriter streamWriter = new StreamWriter(gzipStream, Encoding.UTF8))
+            {
+                streamWriter.Write(bodyContent);
+            }
+
+            bodyContentAsBytes = memoryStream.ToArray();
+        }
+        string responseHeadersString = $"HTTP/1.1 200 OK\r\n" +
+                                       $"Content-Encoding: gzip\r\n" +
+                                       $"Content-Type: text/plain\r\n" +
+                                       $"Content-Length: {bodyContentAsBytes.Length}\r\n" +
+                                       $"\r\n";
+        byte[] headerBytes =  Encoding.UTF8.GetBytes(responseHeadersString);
+        byte[] response = new byte[headerBytes.Length + bodyContentAsBytes.Length];
+        
+        Buffer.BlockCopy(headerBytes, 0, response, 0, headerBytes.Length);
+        Buffer.BlockCopy(bodyContentAsBytes, 0, response, headerBytes.Length, bodyContentAsBytes.Length);
+
+        return response;
+    }
+}
+
+string[] CheckForAcceptedEncoding(string[] requestLines)
+{
+    string[] encodingLine = [];
+    for (int i = 0; i < requestLines.Length - 1; i++)
+    {
+        if (requestLines[i].StartsWith("Accept-Encoding", StringComparison.Ordinal))
+        {
+            var myString = requestLines[i].Substring("Accept-Encoding: ".Length);
+            encodingLine = myString.Split(", ");
+        }
+    }
+
+    return encodingLine;
+}
 
 string GetMessageBody(string[] requestLines)
 {
@@ -33,6 +78,11 @@ byte[] StringToByteArray(string input)
     return Encoding.ASCII.GetBytes(input);
 }
 
+string ByteArrayToString(byte[] bytes)
+{
+    return Encoding.ASCII.GetString(bytes);
+}
+
 void HandleRequest(Socket connection)
 {
     byte[] outBytes = new byte[1024];
@@ -50,6 +100,8 @@ void HandleRequest(Socket connection)
     
     if (httpMethod == "GET")
     {
+        var acceptEncodingValue = CheckForAcceptedEncoding(requestLines);
+        
         if (httpTarget == "/")
         {
             connection.Send(okResponse);
@@ -59,9 +111,17 @@ void HandleRequest(Socket connection)
             //Skip to the part of the string after '/echo/'
             int startingIndex = httpTarget.LastIndexOf("/") + 1;
             string message = httpTarget.Substring(startingIndex);
-            string stringResponse =
-                $"HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: {message.Length}\r\n\r\n{message}";
-            byte[] byteResponse = StringToByteArray(stringResponse);
+            byte[] byteResponse;
+            if (acceptEncodingValue.Contains("gzip"))
+            {
+                byteResponse = CreateGzippedResponse(message);
+            }
+            else
+            {
+                string stringResponse = $"HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: {message.Length}\r\n\r\n{message}";
+                byteResponse =  Encoding.UTF8.GetBytes(stringResponse);
+            }
+            
             connection.Send(byteResponse);
         }
         else if (httpTarget.StartsWith("/user-agent"))
@@ -114,7 +174,6 @@ void HandleRequest(Socket connection)
                 }
             }
             
-            Console.WriteLine("derp: " + directory);
             Directory.CreateDirectory(directory);
             File.WriteAllText(directory + fileName, messageBody);
             connection.Send(createdResponse);
