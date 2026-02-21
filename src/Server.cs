@@ -16,7 +16,7 @@ byte[] CreateGzippedResponse(string bodyContent)
     {
         using (GZipStream gzipStream = new GZipStream(memoryStream, CompressionMode.Compress))
         {
-            using (StreamWriter streamWriter = new StreamWriter(gzipStream, Encoding.UTF8))
+            using (StreamWriter streamWriter = new StreamWriter(gzipStream, Encoding.ASCII))
             {
                 streamWriter.Write(bodyContent);
             }
@@ -28,7 +28,7 @@ byte[] CreateGzippedResponse(string bodyContent)
                                        $"Content-Type: text/plain\r\n" +
                                        $"Content-Length: {bodyContentAsBytes.Length}\r\n" +
                                        $"\r\n";
-        byte[] headerBytes =  Encoding.UTF8.GetBytes(responseHeadersString);
+        byte[] headerBytes =  Encoding.ASCII.GetBytes(responseHeadersString);
         byte[] response = new byte[headerBytes.Length + bodyContentAsBytes.Length];
         
         Buffer.BlockCopy(headerBytes, 0, response, 0, headerBytes.Length);
@@ -78,11 +78,6 @@ byte[] StringToByteArray(string input)
     return Encoding.ASCII.GetBytes(input);
 }
 
-string ByteArrayToString(byte[] bytes)
-{
-    return Encoding.ASCII.GetString(bytes);
-}
-
 void HandleRequest(Socket connection)
 {
     byte[] outBytes = new byte[1024];
@@ -119,7 +114,7 @@ void HandleRequest(Socket connection)
             else
             {
                 string stringResponse = $"HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: {message.Length}\r\n\r\n{message}";
-                byteResponse =  Encoding.UTF8.GetBytes(stringResponse);
+                byteResponse =  Encoding.ASCII.GetBytes(stringResponse);
             }
             
             connection.Send(byteResponse);
