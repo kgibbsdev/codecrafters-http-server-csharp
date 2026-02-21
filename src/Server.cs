@@ -93,7 +93,7 @@ byte[] CreateNotFoundResponse(bool closeConnection, string? bodyContent = null)
     return StringToByteArray(notFoundResponse);
 }
 
-byte[] CreateGzippedResponse(string bodyContent, bool closeConnection)
+byte[] CreateGzippedResponse(bool closeConnection, string bodyContent)
 {
     byte[] bodyContentAsBytes = [];
     using (MemoryStream memoryStream = new MemoryStream())
@@ -226,7 +226,7 @@ void HandleConnection(Socket connection)
                     byte[] byteResponse;
                     if (acceptEncodingValue.Contains("gzip"))
                     {
-                        byteResponse = CreateGzippedResponse(message, closeConnection);
+                        byteResponse = CreateGzippedResponse(closeConnection, message);
                     }
                     else
                     {
