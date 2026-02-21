@@ -5,12 +5,95 @@ using System.Net.Sockets;
 using System.Text;
 
 
-var okResponse = StringToByteArray("HTTP/1.1 200 OK\r\n\r\n");
-var notFoundResponse = StringToByteArray("HTTP/1.1 404 Not Found\r\n\r\n");
-var badRequestResponse = StringToByteArray("HTTP/1.1 400 Bad Request\r\n\r\n");
-var createdResponse = StringToByteArray("HTTP/1.1 201 Created\r\n\r\n");
+// var okResponse = StringToByteArray("HTTP/1.1 200 OK\r\n\r\n");
+// var notFoundResponse = StringToByteArray("HTTP/1.1 404 Not Found\r\n\r\n");
+// var badRequestResponse = StringToByteArray("HTTP/1.1 400 Bad Request\r\n\r\n");
+// var createdResponse = StringToByteArray("HTTP/1.1 201 Created\r\n\r\n");
 
-byte[] CreateGzippedResponse(string bodyContent)
+string AddBodyToResponse(string response, string bodyContentAsString)
+{
+    string newResponse = string.Concat(response, bodyContentAsString);
+    return newResponse;
+}
+
+string AddHeaderToResponse(string response, string headerNameValuePair)
+{
+    string newResponse = string.Concat(response, headerNameValuePair + "\r\n");
+    return newResponse;
+}
+
+byte[] createBadRequestResponse(bool closeConnection, string? bodyContent = null)
+{
+    string badRequestResponse = "HTTP/1.1 400 BadRequest\r\n";
+    if (closeConnection)
+    {
+        badRequestResponse = AddHeaderToResponse(badRequestResponse, $"Connection: close\r\n");
+    }
+    if (bodyContent != null)
+    {
+        badRequestResponse = AddHeaderToResponse(badRequestResponse, $"Content-Type: text/plain\r\n" +
+                                                                     $"Content-Length: {bodyContent.Length}\r\n");
+        badRequestResponse =  AddBodyToResponse(badRequestResponse, bodyContent);
+        
+    }
+    return StringToByteArray(badRequestResponse);
+}
+
+byte[] CreateCreatedResponse(bool closeConnection, string? bodyContent = null)
+{
+    var createdResponse = "HTTP/1.1 201 Created\r\n";
+    if (closeConnection)
+    {
+        createdResponse = AddHeaderToResponse(createdResponse, $"Connection: close\r\n\r\n");
+    }
+    if (bodyContent != null)
+    {
+        createdResponse = AddHeaderToResponse(createdResponse, $"Content-Type: text/plain\r\n\r\n" +
+                                                               $"Content-Length: {bodyContent.Length}\r\n");
+        createdResponse =  AddBodyToResponse(createdResponse, bodyContent);
+    }
+    
+    return StringToByteArray(createdResponse);
+}
+
+byte[] CreateOKResponse(bool closeConnection, string? bodyContent = null)
+{
+    Console.WriteLine("bodyContent: " +  bodyContent);
+    var okResponse = "HTTP/1.1 200 OK\r\n";
+    if (closeConnection)
+    {
+        okResponse = AddHeaderToResponse(okResponse, $"Connection: close\r\n");
+    }
+    if (bodyContent != null)
+    {
+        okResponse = AddHeaderToResponse(okResponse, $"Content-Type: text/plain\r\n" +
+                                                     $"Content-Length: {bodyContent.Length}\r\n");
+        okResponse =  AddBodyToResponse(okResponse, bodyContent);
+    }
+
+    okResponse += "\r\n";
+    Console.WriteLine(okResponse);
+    return StringToByteArray(okResponse);
+}
+
+byte[] CreateNotFoundResponse(bool closeConnection, string? bodyContent = null)
+{
+    var notFoundResponse = "HTTP/1.1 404 Not Found\r\n";
+    if (closeConnection)
+    {
+        notFoundResponse = AddHeaderToResponse(notFoundResponse, $"Connection: close\r\n\r\n");
+    }
+    
+    if (bodyContent != null)
+    {
+        notFoundResponse = AddHeaderToResponse(notFoundResponse, $"Content-Type: text/plain\r\n\r\n" +
+                                                                 $"Content-Length: {bodyContent.Length}\r\n\r\n");
+        notFoundResponse =  AddBodyToResponse(notFoundResponse, bodyContent);
+    }
+    return StringToByteArray(notFoundResponse);
+}
+
+byte[] CreateGzippedResponse(string bodyContent, bool closeConnection)
 {
     byte[] bodyContentAsBytes = [];
     using (MemoryStream memoryStream = new MemoryStream())
@@ -24,19 +107,38 @@ byte[] CreateGzippedResponse(string bodyContent)
 
             bodyContentAsBytes = memoryStream.ToArray();
         }
-        string responseHeadersString = $"HTTP/1.1 200 OK\r\n" +
-                                       $"Content-Encoding: gzip\r\n" +
-                                       $"Content-Type: text/plain\r\n" +
-                                       $"Content-Length: {bodyContentAsBytes.Length}\r\n" +
-                                       $"\r\n";
+        
+        string responseHeadersString = $"HTTP/1.1 200 OK\r\n";
+        AddHeaderToResponse(responseHeadersString, "Content-Encoding: gzip");
+        AddHeaderToResponse(responseHeadersString, "Content-Type: text/plain");
+        AddHeaderToResponse(responseHeadersString, "Content-Type: text/plain");
+
+        if (closeConnection)
+            AddHeaderToResponse(responseHeadersString, "Connection: close");
+        
         byte[] headerBytes =  Encoding.ASCII.GetBytes(responseHeadersString);
         byte[] response = new byte[headerBytes.Length + bodyContentAsBytes.Length];
         
         Buffer.BlockCopy(headerBytes, 0, response, 0, headerBytes.Length);
         Buffer.BlockCopy(bodyContentAsBytes, 0, response, headerBytes.Length, bodyContentAsBytes.Length);
 
+        memoryStream.Dispose();
         return response;
     }
+}
+
+string CheckForConnectionHeader(string[] requestLines)
+{
+    string conectionCloseValue = "";
+    for (int i = 0; i < requestLines.Length - 1; i++)
+    {
+        if (requestLines[i].StartsWith("Connection:", StringComparison.Ordinal))
+        {
+            conectionCloseValue = requestLines[i].Substring("Connection: ".Length);
+        }
+    }
+
+    return conectionCloseValue; 
 }
 
 string[] CheckForAcceptedEncoding(string[] requestLines)
@@ -92,21 +194,29 @@ void HandleConnection(Socket connection)
             int numberOfBytes = connection.Receive(outBytes);
 
             string query = Encoding.ASCII.GetString(outBytes, 0, numberOfBytes);
-
+            if (query == "" || query == null)
+                throw new NullReferenceException();
+            
             string[] requestLines = query.Split("\r\n");
 
             string httpMethod = requestLines[0].Split(" ")[0];
             string httpTarget = requestLines[0].Split(" ")[1];
-
+            string connectionHeaderValue = CheckForConnectionHeader(requestLines);
+            
+            bool closeConnection = false;
+            if (connectionHeaderValue.ToLower() == "close")
+            {
+                closeConnection = true;
+            }
             string messageBody = GetMessageBody(requestLines);
-
+            
             if (httpMethod == "GET")
             {
                 var acceptEncodingValue = CheckForAcceptedEncoding(requestLines);
 
                 if (httpTarget == "/")
                 {
-                    connection.Send(okResponse);
+                    connection.Send(CreateOKResponse(closeConnection));
                 }
                 else if (httpTarget.StartsWith("/echo"))
                 {
@@ -116,13 +226,12 @@ void HandleConnection(Socket connection)
                     byte[] byteResponse;
                     if (acceptEncodingValue.Contains("gzip"))
                     {
-                        byteResponse = CreateGzippedResponse(message);
+                        byteResponse = CreateGzippedResponse(message, closeConnection);
                     }
                     else
                     {
-                        string stringResponse =
-                            $"HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: {message.Length}\r\n\r\n{message}";
-                        byteResponse = Encoding.ASCII.GetBytes(stringResponse);
+
+                        byteResponse = CreateOKResponse(closeConnection, message);
                     }
 
                     connection.Send(byteResponse);
@@ -134,7 +243,9 @@ void HandleConnection(Socket connection)
                     var userAgentName = elements[1];
                     string stringResponse =
                         $"HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: {userAgentName.Length}\r\n\r\n{userAgentName}";
-                    byte[] byteResponse = StringToByteArray(stringResponse);
+                    Console.WriteLine("poozer " + userAgentName);
+                    byte[] byteResponse = CreateOKResponse(closeConnection, userAgentName);
+                    
                     connection.Send(byteResponse);
                 }
                 else if (httpTarget.StartsWith("/files"))
@@ -148,18 +259,22 @@ void HandleConnection(Socket connection)
                         string fileContent = File.ReadAllText(filePath);
                         string stringResponse =
                             $"HTTP/1.1 200 OK\r\nContent-Type: application/octet-stream\r\nContent-Length: {fileContent.Length}\r\n\r\n{fileContent}";
+
+                        if (closeConnection)
+                            stringResponse = AddHeaderToResponse(stringResponse, "Connection: close");
+                        
                         byte[] byteResponse = StringToByteArray(stringResponse);
                         connection.Send(byteResponse);
                     }
                     else
                     {
-                        connection.Send(notFoundResponse);
+                        connection.Send(CreateNotFoundResponse(closeConnection));
                     }
 
                 }
                 else
                 {
-                    connection.Send(notFoundResponse);
+                    connection.Send(CreateNotFoundResponse(closeConnection));
                 }
             }
             else if (httpMethod == "POST")
@@ -179,20 +294,27 @@ void HandleConnection(Socket connection)
 
                     Directory.CreateDirectory(directory);
                     File.WriteAllText(directory + fileName, messageBody);
-                    connection.Send(createdResponse);
+                    connection.Send(CreateCreatedResponse(closeConnection));
                 }
                 else
                 {
-                    connection.Send(notFoundResponse);
+                    connection.Send(CreateNotFoundResponse(closeConnection));
                 }
             }
             else
             {
-                connection.Send(notFoundResponse);
+                connection.Send(CreateNotFoundResponse(closeConnection));
+            }
+
+            if (connectionHeaderValue.ToLower() == "close")
+            {
+                connection.Close();
             }
         }
-        catch (SocketException e)
+        catch (Exception e)
         {
+            var response = createBadRequestResponse(true);
+            connection.Send(response);
             connection.Close();
         }
 
