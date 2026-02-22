@@ -3,7 +3,7 @@
 Project: [Code Crafters Build your own HTTP Server](https://app.codecrafters.io/courses/http-server/overview)
 
 This server supports multiple concurrent connections via sockets, and compressed responses via Gzip. Connections are kept alive for 3 seconds and then closed automatically if no requests are received from the client. If the client specifies it only wants to make one request, the socket is closed once the request is complete.
-Supported Routes
+### Supported Routes
 
 #### GET Routes
 
