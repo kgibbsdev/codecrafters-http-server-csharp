@@ -48,8 +48,8 @@ byte[] CreateCreatedResponse(bool closeConnection, string? bodyContent = null)
     }
     if (bodyContent != null)
     {
-        createdResponse += "Content-Type: text/plain\r\n";
-        createdResponse += $"Content-Length: {bodyContent.Length}\r\n";
+        createdResponse = AddHeaderToResponse(createdResponse, "Content-Type: text/plain\r\n");
+        createdResponse = AddHeaderToResponse(createdResponse, $"Content-Length: {bodyContent.Length}\r\n");
         createdResponse += "\r\n";
         createdResponse += bodyContent;
     }
