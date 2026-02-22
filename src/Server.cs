@@ -4,12 +4,6 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 
-
-// var okResponse = StringToByteArray("HTTP/1.1 200 OK\r\n\r\n");
-// var notFoundResponse = StringToByteArray("HTTP/1.1 404 Not Found\r\n\r\n");
-// var badRequestResponse = StringToByteArray("HTTP/1.1 400 Bad Request\r\n\r\n");
-// var createdResponse = StringToByteArray("HTTP/1.1 201 Created\r\n\r\n");
-
 string AddBodyToResponse(string response, string bodyContentAsString)
 {
     string newResponse = string.Concat(response, bodyContentAsString);
@@ -267,7 +261,6 @@ void HandleConnection(Socket connection)
                     // remove /files
                     string fileName = httpTarget.Substring(7);
                     string filePath = args[1] + fileName;
-                    Console.WriteLine("File Path: " + filePath);
                     if (File.Exists(filePath))
                     {
                         string fileContent = File.ReadAllText(filePath);
