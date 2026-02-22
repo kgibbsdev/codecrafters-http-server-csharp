@@ -18,7 +18,7 @@ string AddBodyToResponse(string response, string bodyContentAsString)
 
 string AddHeaderToResponse(string response, string headerNameValuePair)
 {
-    string newResponse = string.Concat(response, headerNameValuePair + "\r\n");
+    string newResponse = string.Concat(response, headerNameValuePair);
     return newResponse;
 }
 
@@ -32,7 +32,7 @@ byte[] createBadRequestResponse(bool closeConnection, string? bodyContent = null
     if (bodyContent != null)
     {
         badRequestResponse = AddHeaderToResponse(badRequestResponse, $"Content-Type: text/plain\r\n" +
-                                                                     $"Content-Length: {bodyContent.Length}\r\n");
+                                                                     $"Content-Length: {bodyContent.Length}\r\n\r\n");
         badRequestResponse =  AddBodyToResponse(badRequestResponse, bodyContent);
         
     }
@@ -44,15 +44,19 @@ byte[] CreateCreatedResponse(bool closeConnection, string? bodyContent = null)
     var createdResponse = "HTTP/1.1 201 Created\r\n";
     if (closeConnection)
     {
-        createdResponse = AddHeaderToResponse(createdResponse, $"Connection: close\r\n\r\n");
+        createdResponse = AddHeaderToResponse(createdResponse, $"Connection: close\r\n");
     }
     if (bodyContent != null)
     {
-        createdResponse = AddHeaderToResponse(createdResponse, $"Content-Type: text/plain\r\n\r\n" +
-                                                               $"Content-Length: {bodyContent.Length}\r\n");
-        createdResponse =  AddBodyToResponse(createdResponse, bodyContent);
+        createdResponse += "Content-Type: text/plain\r\n";
+        createdResponse += $"Content-Length: {bodyContent.Length}\r\n";
+        createdResponse += "\r\n";
+        createdResponse += bodyContent;
     }
-    
+    else
+    {
+        createdResponse += "\r\n";
+    }
     return StringToByteArray(createdResponse);
 }
 
@@ -66,12 +70,16 @@ byte[] CreateOKResponse(bool closeConnection, string? bodyContent = null)
     }
     if (bodyContent != null)
     {
-        okResponse = AddHeaderToResponse(okResponse, $"Content-Type: text/plain\r\n" +
-                                                     $"Content-Length: {bodyContent.Length}\r\n");
-        okResponse =  AddBodyToResponse(okResponse, bodyContent);
+        okResponse += "Content-Type: text/plain\r\n";
+        okResponse += $"Content-Length: {bodyContent.Length}\r\n";
+        okResponse += "\r\n";
+        okResponse += bodyContent;
+    }
+    else
+    {
+        okResponse += "\r\n";
     }
 
-    okResponse += "\r\n";
     Console.WriteLine(okResponse);
     return StringToByteArray(okResponse);
 }
@@ -81,14 +89,18 @@ byte[] CreateNotFoundResponse(bool closeConnection, string? bodyContent = null)
     var notFoundResponse = "HTTP/1.1 404 Not Found\r\n";
     if (closeConnection)
     {
-        notFoundResponse = AddHeaderToResponse(notFoundResponse, $"Connection: close\r\n\r\n");
+        notFoundResponse = AddHeaderToResponse(notFoundResponse, $"Connection: close\r\n");
     }
-    
     if (bodyContent != null)
     {
-        notFoundResponse = AddHeaderToResponse(notFoundResponse, $"Content-Type: text/plain\r\n\r\n" +
-                                                                 $"Content-Length: {bodyContent.Length}\r\n\r\n");
-        notFoundResponse =  AddBodyToResponse(notFoundResponse, bodyContent);
+        notFoundResponse += "Content-Type: text/plain\r\n";
+        notFoundResponse += $"Content-Length: {bodyContent.Length}\r\n";
+        notFoundResponse += "\r\n";
+        notFoundResponse += bodyContent;
+    }
+    else
+    {
+        notFoundResponse += "\r\n";
     }
     return StringToByteArray(notFoundResponse);
 }
@@ -109,12 +121,17 @@ byte[] CreateGzippedResponse(bool closeConnection, string bodyContent)
         }
         
         string responseHeadersString = $"HTTP/1.1 200 OK\r\n";
-        AddHeaderToResponse(responseHeadersString, "Content-Encoding: gzip");
-        AddHeaderToResponse(responseHeadersString, "Content-Type: text/plain");
-        AddHeaderToResponse(responseHeadersString, "Content-Type: text/plain");
-
+        responseHeadersString = AddHeaderToResponse(responseHeadersString, "Content-Encoding: gzip\r\n");
+        responseHeadersString = AddHeaderToResponse(responseHeadersString, "Content-Type: text/plain\r\n");
+        responseHeadersString += $"Content-Length: {bodyContentAsBytes.Length}\r\n";
+        
         if (closeConnection)
-            AddHeaderToResponse(responseHeadersString, "Connection: close");
+        {
+            responseHeadersString = AddHeaderToResponse(responseHeadersString, "Connection: close\r\n");
+        }
+
+        responseHeadersString += "\r\n";
+          
         
         byte[] headerBytes =  Encoding.ASCII.GetBytes(responseHeadersString);
         byte[] response = new byte[headerBytes.Length + bodyContentAsBytes.Length];
@@ -161,9 +178,10 @@ string GetMessageBody(string[] requestLines)
     int messageBodyIndex = 0;
     for (int i = 0; i < requestLines.Length-1; i++)
     {
-        if (requestLines[i] == "" && requestLines.Length > i + 1);
+        if (requestLines[i] == "" && requestLines.Length > i + 1)
         {
             messageBodyIndex = i + 1;
+            break;
         }
     }
 
@@ -241,8 +259,6 @@ void HandleConnection(Socket connection)
                     var userAgentLine = requestLines.Where(l => l.StartsWith("User-Agent")).ToList()[0];
                     var elements = userAgentLine.Split(' ');
                     var userAgentName = elements[1];
-                    string stringResponse =
-                        $"HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: {userAgentName.Length}\r\n\r\n{userAgentName}";
                     Console.WriteLine("poozer " + userAgentName);
                     byte[] byteResponse = CreateOKResponse(closeConnection, userAgentName);
                     
