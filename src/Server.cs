@@ -62,7 +62,6 @@ byte[] CreateCreatedResponse(bool closeConnection, string? bodyContent = null)
 
 byte[] CreateOKResponse(bool closeConnection, string? bodyContent = null)
 {
-    Console.WriteLine("bodyContent: " +  bodyContent);
     var okResponse = "HTTP/1.1 200 OK\r\n";
     if (closeConnection)
     {
@@ -70,8 +69,8 @@ byte[] CreateOKResponse(bool closeConnection, string? bodyContent = null)
     }
     if (bodyContent != null)
     {
-        okResponse += "Content-Type: text/plain\r\n";
-        okResponse += $"Content-Length: {bodyContent.Length}\r\n";
+        okResponse = AddHeaderToResponse(okResponse, "Content-Type: text/plain\r\n");
+        okResponse = AddHeaderToResponse(okResponse, $"Content-Length: {bodyContent.Length}\r\n");
         okResponse += "\r\n";
         okResponse += bodyContent;
     }
@@ -80,7 +79,6 @@ byte[] CreateOKResponse(bool closeConnection, string? bodyContent = null)
         okResponse += "\r\n";
     }
 
-    Console.WriteLine(okResponse);
     return StringToByteArray(okResponse);
 }
 
@@ -93,8 +91,8 @@ byte[] CreateNotFoundResponse(bool closeConnection, string? bodyContent = null)
     }
     if (bodyContent != null)
     {
-        notFoundResponse += "Content-Type: text/plain\r\n";
-        notFoundResponse += $"Content-Length: {bodyContent.Length}\r\n";
+        notFoundResponse = AddHeaderToResponse(notFoundResponse, "Content-Type: text/plain\r\n");
+        notFoundResponse = AddHeaderToResponse(notFoundResponse, $"Content-Length: {bodyContent.Length}\r\n");
         notFoundResponse += "\r\n";
         notFoundResponse += bodyContent;
     }
