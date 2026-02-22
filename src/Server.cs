@@ -51,7 +51,7 @@ byte[] CreateCreatedResponse(bool closeConnection, string? bodyContent = null)
         createdResponse = AddHeaderToResponse(createdResponse, "Content-Type: text/plain\r\n");
         createdResponse = AddHeaderToResponse(createdResponse, $"Content-Length: {bodyContent.Length}\r\n");
         createdResponse += "\r\n";
-        createdResponse += bodyContent;
+        createdResponse = AddBodyToResponse(createdResponse, bodyContent);
     }
     else
     {
@@ -72,7 +72,7 @@ byte[] CreateOKResponse(bool closeConnection, string? bodyContent = null)
         okResponse = AddHeaderToResponse(okResponse, "Content-Type: text/plain\r\n");
         okResponse = AddHeaderToResponse(okResponse, $"Content-Length: {bodyContent.Length}\r\n");
         okResponse += "\r\n";
-        okResponse += bodyContent;
+        okResponse = AddBodyToResponse(okResponse, bodyContent);
     }
     else
     {
@@ -94,7 +94,7 @@ byte[] CreateNotFoundResponse(bool closeConnection, string? bodyContent = null)
         notFoundResponse = AddHeaderToResponse(notFoundResponse, "Content-Type: text/plain\r\n");
         notFoundResponse = AddHeaderToResponse(notFoundResponse, $"Content-Length: {bodyContent.Length}\r\n");
         notFoundResponse += "\r\n";
-        notFoundResponse += bodyContent;
+        notFoundResponse = AddBodyToResponse(notFoundResponse, bodyContent);
     }
     else
     {
