@@ -123,7 +123,7 @@ byte[] CreateGzippedResponse(bool closeConnection, string bodyContent)
         string responseHeadersString = $"HTTP/1.1 200 OK\r\n";
         responseHeadersString = AddHeaderToResponse(responseHeadersString, "Content-Encoding: gzip\r\n");
         responseHeadersString = AddHeaderToResponse(responseHeadersString, "Content-Type: text/plain\r\n");
-        responseHeadersString += $"Content-Length: {bodyContentAsBytes.Length}\r\n";
+        responseHeadersString = AddHeaderToResponse(responseHeadersString, $"Content-Length: {bodyContentAsBytes.Length}\r\n");
         
         if (closeConnection)
         {
